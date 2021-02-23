@@ -2,40 +2,46 @@ package com.ma.currencyconverter.controller;
 
 import com.ma.currencyconverter.service.ExchangeCurrencyInfo;
 import com.ma.currencyconverter.service.ForeignExchangeRateService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.Currency;
-import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest({CurrencyConverterController.class})
+
+@ExtendWith(MockitoExtension.class)
 class CurrencyConverterControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private CurrencyConverterController currencyConverterController;
 
-    @MockBean
+    @Mock
     private ForeignExchangeRateService foreignExchangeRateService;
 
-    @Test
-    void getExCurrency() throws IOException {
 
+    @Test
+    void getExCurrency() throws Exception {
+        // Arrange
         ExchangeCurrencyInfo exchangeCurrencyInfo = new ExchangeCurrencyInfo();
         exchangeCurrencyInfo.setLocalNumberFormatStr( "Exchange rate is: 1.21\n" +
                 "10 EUR exchanged amount will be 12.14 $");
-
+        // Mock
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         when(foreignExchangeRateService.getExchangeCurrencyInfo(any(), any(), any())).thenReturn(exchangeCurrencyInfo);
+
+        // Act
+        String result = currencyConverterController.getExCurrency("eur", "usd", 10);
+
+        // Assert
+        Assertions.assertEquals(result, exchangeCurrencyInfo.getLocalNumberFormatStr());
     }
     
 }

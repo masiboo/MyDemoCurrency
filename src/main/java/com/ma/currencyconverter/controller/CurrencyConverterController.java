@@ -24,8 +24,11 @@ import java.math.BigDecimal;
  * @since 23-02-2021
  */
 @RestController
-@RequestMapping(path = "/api/v1/revisions/")
+@RequestMapping(path = CurrencyConverterController.REQUEST_URL)
 public class CurrencyConverterController {
+
+    public static final String REQUEST_URL = "/api/v1/revisions/";
+    public static final String GET_EXCHANGE_REQUEST = "exchange-currency";
 
     private static final Logger logger = LogManager.getLogger(CurrencyConverterController.class);
 
@@ -42,7 +45,7 @@ public class CurrencyConverterController {
      * @since 10-02-2020
      */
     @ApiOperation(value = "Returns a page of all routing rules revisions")
-    @GetMapping(value = "exchange-currency", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = GET_EXCHANGE_REQUEST, produces = MediaType.APPLICATION_JSON_VALUE)
     public String getExCurrency(
             @ApiParam(value = "Local currency 3 character alphabetic currency codes (ISO 4217), i.e. eur, usd, gpb")
             @RequestParam(value = "localCurrency", required = true) String localCurrency,
@@ -50,18 +53,12 @@ public class CurrencyConverterController {
             @RequestParam(value = "exCurrency", required = true) String exCurrency,
             @ApiParam(value = "A desired amount of money for exchange. It can have a dot (.) or comma (,) as a decimal " +
                     "number or just whole number i.e. 10, 10,50 or 10.50 ")
-            @RequestParam(required = true) String amount) {
+            @RequestParam(required = true) double amount) {
         logger.info("amount: " + amount + " currency: " + localCurrency + " exCurrency: " + exCurrency);
-        BigDecimal bigDecimalAmount;
+        BigDecimal bigDecimalAmount = new BigDecimal(amount);
         ExchangeCurrencyInfo exchangeCurrencyInfo;
         try {
-            if (amount.contains(",")) {
-                amount = amount.replace(",", ".");
-            }
-            bigDecimalAmount = NumberUtils.parseNumber(amount, BigDecimal.class);
             exchangeCurrencyInfo = foreignExchangeRateService.getExchangeCurrencyInfo(localCurrency, exCurrency, bigDecimalAmount);
-        } catch (NumberFormatException ex ) {
-            return "amount must be a number";
         } catch (IOException ex){
             return "The requested local currency is not supported in our system";
         }
