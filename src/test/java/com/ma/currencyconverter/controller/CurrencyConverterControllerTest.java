@@ -12,6 +12,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.io.IOException;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -43,5 +47,19 @@ class CurrencyConverterControllerTest {
         // Assert
         Assertions.assertEquals(result, exchangeCurrencyInfo.getLocalNumberFormatStr());
     }
-    
+
+    @Test
+    void getAllSupportedCurrency() throws IOException {
+        // Arrange
+        List<String> expectedCurrencyList = List.of("cad", "usd", "gbp", "sek", "aud");
+
+        // Mock
+        when(foreignExchangeRateService.getAllSupportedCurrency("eur")).thenReturn(expectedCurrencyList);
+
+        // Act
+        var actualCurrencyList =  currencyConverterController.getAllSupportedCurrency("eur");
+
+        // Assert
+        assertLinesMatch(expectedCurrencyList, actualCurrencyList);
+    }
 }

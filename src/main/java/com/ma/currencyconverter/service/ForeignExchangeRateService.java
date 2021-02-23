@@ -1,6 +1,7 @@
 package com.ma.currencyconverter.service;
 
 
+import ch.qos.logback.classic.boolex.GEventEvaluator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,7 +17,10 @@ import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * This service fetch currency exchange rate data from exchangeratesapi
@@ -30,16 +34,7 @@ public class ForeignExchangeRateService {
     private static String exchangeRateApi = "https://api.exchangeratesapi.io/latest?base=";
     private ExchangeCurrencyInfo exchangeCurrencyInfo;
 
-    /**
-     * This will return ExchangeCurrencyInfo instance with all required value
-     * @since 23-02-2021
-     * @param localCurrency
-     * @param exchangeCurrency
-     * @param amount
-     * @return
-     */
-
-    public ExchangeCurrencyInfo getExchangeCurrencyInfo(String localCurrency, String exchangeCurrency, BigDecimal amount ) throws IOException {
+    HttpURLConnection getHttpURLConnection(String localCurrency)throws IOException{
         HttpURLConnection connection;
         try {
             var url = new URL(exchangeRateApi+localCurrency.toUpperCase());
@@ -50,10 +45,24 @@ public class ForeignExchangeRateService {
         } catch (IOException e) {
             throw new IOException(e.getMessage());
         }
+        return connection;
+    }
+
+    /**
+     * This will return ExchangeCurrencyInfo instance with all required value
+     * @since 23-02-2021
+     * @param localCurrency
+     * @param exchangeCurrency
+     * @param amount
+     * @return
+     */
+
+    public ExchangeCurrencyInfo getExchangeCurrencyInfo(String localCurrency, String exchangeCurrency, BigDecimal amount ) throws IOException {
+        var connection = getHttpURLConnection(localCurrency);
         // Convert to JSON
         JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) connection.getContent()));
         JsonObject members = root.getAsJsonObject();
-        // Accessing object
+        // Access rates object
         JsonElement rates = members.get("rates");
         JsonObject allRates = rates.getAsJsonObject();
 
@@ -79,6 +88,18 @@ public class ForeignExchangeRateService {
         exchangeCurrencyInfo.setExchangeAmount(amount);
         exchangeCurrencyInfo.setSymbolLocaleInfo(allRates, exchangeCurrency );
         return exchangeCurrencyInfo;
+    }
+
+    public List<String> getAllSupportedCurrency(String baseCurrency) throws IOException {
+        var connection = getHttpURLConnection(baseCurrency);
+        // Convert to JSON
+        JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) connection.getContent()));
+        JsonObject members = root.getAsJsonObject();
+        // Access rates object
+        JsonElement rates = members.get("rates");
+        JsonObject allRates = rates.getAsJsonObject();
+
+        return new ArrayList<>(allRates.keySet());
     }
 
     /**
