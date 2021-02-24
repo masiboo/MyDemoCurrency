@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.util.NumberUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,9 +45,9 @@ public class CurrencyConverterController {
      * @return
      * @since 10-02-2020
      */
-    @ApiOperation(value = "Returns exchanged amount and exchange rate")
+    @ApiOperation(value = "Returns ExchangeCurrencyInfo")
     @GetMapping(value = GET_EXCHANGE_REQUEST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public String getExCurrency(
+    public ExchangeCurrencyInfo getExCurrency(
             @ApiParam(value = "Local currency 3 character alphabetic currency codes (ISO 4217), i.e. eur, usd, gpb")
             @RequestParam(value = "localCurrency", required = true) String localCurrency,
             @ApiParam(value = "Exchanged currency 3 character alphabetic currency codes (ISO 4217), i.e. eur, usd, gpb")
@@ -61,12 +60,16 @@ public class CurrencyConverterController {
         try {
             exchangeCurrencyInfo = foreignExchangeRateService.getExchangeCurrencyInfo(localCurrency, exCurrency, bigDecimalAmount);
         } catch (IOException ex){
-            return "The requested local currency is not supported in our system";
+            exchangeCurrencyInfo = new ExchangeCurrencyInfo();
+            exchangeCurrencyInfo.populateResult("The requested local currency is not supported in our system");
+            return exchangeCurrencyInfo;
         }
         if(exchangeCurrencyInfo == null){
-            return "The requested exchange currency is not found";
+            exchangeCurrencyInfo = new ExchangeCurrencyInfo();
+            exchangeCurrencyInfo.populateResult("The requested exchange currency is not found in our system");
+            return exchangeCurrencyInfo;
         }
-        return exchangeCurrencyInfo.getLocalNumberFormatStr();
+        return exchangeCurrencyInfo;
     }
 
     @ApiOperation(value = "Returns a list of all supported currency for the given currency")
@@ -77,7 +80,7 @@ public class CurrencyConverterController {
          try {
             return foreignExchangeRateService.getAllSupportedCurrency(baseCurrency);
          } catch (IOException ex){
-            return null;
+            return List.of("Not supported currency type");
          }
     }
 }

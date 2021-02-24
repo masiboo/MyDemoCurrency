@@ -1,7 +1,6 @@
 package com.ma.currencyconverter.service;
 
 
-import ch.qos.logback.classic.boolex.GEventEvaluator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,18 +13,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * This service fetch currency exchange rate data from exchangeratesapi
+ *
  * @since 23-02-2021
- * */
+ */
 @Service
 public class ForeignExchangeRateService {
 
@@ -34,10 +34,10 @@ public class ForeignExchangeRateService {
     private static String exchangeRateApi = "https://api.exchangeratesapi.io/latest?base=";
     private ExchangeCurrencyInfo exchangeCurrencyInfo;
 
-    HttpURLConnection getHttpURLConnection(String localCurrency)throws IOException{
+    HttpURLConnection getHttpURLConnection(String localCurrency) throws IOException {
         HttpURLConnection connection;
         try {
-            var url = new URL(exchangeRateApi+localCurrency.toUpperCase());
+            var url = new URL(exchangeRateApi + localCurrency.toUpperCase());
             connection = (HttpURLConnection) url.openConnection();
             connection.connect();
         } catch (MalformedURLException e) {
@@ -50,14 +50,15 @@ public class ForeignExchangeRateService {
 
     /**
      * This will return ExchangeCurrencyInfo instance with all required value
-     * @since 23-02-2021
+     *
      * @param localCurrency
      * @param exchangeCurrency
-     * @param amount
+     * @param localAmount
      * @return
+     * @since 23-02-2021
      */
 
-    public ExchangeCurrencyInfo getExchangeCurrencyInfo(String localCurrency, String exchangeCurrency, BigDecimal amount ) throws IOException {
+    public ExchangeCurrencyInfo getExchangeCurrencyInfo(String localCurrency, String exchangeCurrency, BigDecimal localAmount) throws IOException {
         var connection = getHttpURLConnection(localCurrency);
         // Convert to JSON
         JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) connection.getContent()));
@@ -67,26 +68,27 @@ public class ForeignExchangeRateService {
         JsonObject allRates = rates.getAsJsonObject();
 
         BigDecimal exchangeRate;
-        if(localCurrency.equals(exchangeCurrency)){
+        if (localCurrency.equals(exchangeCurrency)) {
             // both same then exchangeRate must be 1.
             exchangeRate = new BigDecimal(1);
-        }else{
+        } else {
             // gets actual exchange rate
             exchangeRate = exchangeRateFormServer(allRates, exchangeCurrency);
         }
         // No exchange rate found
-        if(exchangeRate == null ){
+        if (exchangeRate == null) {
             return null;
         }
 
         // crate a new instance of exchangeCurrencyInfo for each new request
-        exchangeCurrencyInfo = new ExchangeCurrencyInfo() ;
-        exchangeCurrencyInfo.setRate(exchangeRate);
-        exchangeCurrencyInfo.setAmount(amount);
-        exchangeCurrencyInfo.setCurrencyCode(localCurrency.toUpperCase());
+        exchangeCurrencyInfo = new ExchangeCurrencyInfo();
+        exchangeCurrencyInfo.setExchangeRate(exchangeRate);
+        exchangeCurrencyInfo.setLocalAmount(localAmount);
+        exchangeCurrencyInfo.setLocalCurrencyCode(localCurrency.toUpperCase());
         exchangeCurrencyInfo.setExchangeCurrencyCode(exchangeCurrency.toUpperCase());
-        exchangeCurrencyInfo.setExchangeAmount(amount);
-        exchangeCurrencyInfo.setSymbolLocaleInfo(allRates, exchangeCurrency );
+        exchangeCurrencyInfo.setExchangedAmount(localAmount.multiply(exchangeRate)
+                                                .setScale(2, RoundingMode.HALF_EVEN));
+        exchangeCurrencyInfo.populateResult();
         return exchangeCurrencyInfo;
     }
 
@@ -104,10 +106,11 @@ public class ForeignExchangeRateService {
 
     /**
      * This will return  exchange rate
-     * @since 23-02-2021
+     *
      * @param allRates
      * @param currency
      * @return
+     * @since 23-02-2021
      */
 
     public BigDecimal exchangeRateFormServer(JsonObject allRates, String currency) {
@@ -116,9 +119,8 @@ public class ForeignExchangeRateService {
             Object value = allRates.get(key);
             logger.info("key: " + key + " exchange value: " + value);
             try {
-                var decimalKey =  NumberUtils.parseNumber(value.toString(), BigDecimal.class);
-               // decimalKey = decimalKey.setScale(2, RoundingMode.HALF_EVEN);
-                exchangeRate.set(decimalKey);
+                var rate = NumberUtils.parseNumber(value.toString(), BigDecimal.class);
+                exchangeRate.set(rate);
             } catch (NumberFormatException ex) {
                 throw new NumberFormatException(ex.getMessage());
             }

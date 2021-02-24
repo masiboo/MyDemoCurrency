@@ -26,9 +26,9 @@ class ForeignExchangeRateServiceTest {
         BigDecimal amount = new BigDecimal("10");
         ExchangeCurrencyInfo exchangeCurrencyInfo = foreignExchangeRateService
                 .getExchangeCurrencyInfo("eur", "gbp", amount);
-        assertTrue(exchangeCurrencyInfo.getRate().compareTo(BigDecimal.ZERO) > 0 );
-        assertTrue(exchangeCurrencyInfo.getExchangeAmount().compareTo(BigDecimal.ZERO) > 0);
-        assertEquals(amount, exchangeCurrencyInfo.getAmount());
+        assertTrue(exchangeCurrencyInfo.getExchangeRate().compareTo(BigDecimal.ZERO) > 0 );
+        assertTrue(exchangeCurrencyInfo.getExchangedAmount().compareTo(BigDecimal.ZERO) > 0);
+        assertEquals(amount, exchangeCurrencyInfo.getLocalAmount());
     }
 
     @Test

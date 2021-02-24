@@ -13,6 +13,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
@@ -29,27 +30,29 @@ class CurrencyConverterControllerTest {
     @Mock
     private ForeignExchangeRateService foreignExchangeRateService;
 
-
     @Test
-    void getExCurrency() throws Exception {
+    void getExCurrencyTest() throws Exception {
         // Arrange
         ExchangeCurrencyInfo exchangeCurrencyInfo = new ExchangeCurrencyInfo();
-        exchangeCurrencyInfo.setLocalNumberFormatStr( "Exchange rate is: 1.21\n" +
-                "10 EUR exchanged amount will be 12.14 $");
+        exchangeCurrencyInfo.setExchangeRate(new BigDecimal("1.21"));
+        exchangeCurrencyInfo.setLocalAmount(new BigDecimal("10"));
+        exchangeCurrencyInfo.setExchangedAmount(new BigDecimal("12.14"));
+        exchangeCurrencyInfo.populateResult();
+
         // Mock
         MockHttpServletRequest request = new MockHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
         when(foreignExchangeRateService.getExchangeCurrencyInfo(any(), any(), any())).thenReturn(exchangeCurrencyInfo);
 
         // Act
-        String result = currencyConverterController.getExCurrency("eur", "usd", 10);
+        var expectedResult = currencyConverterController.getExCurrency("eur", "usd", 10);
 
         // Assert
-        Assertions.assertEquals(result, exchangeCurrencyInfo.getLocalNumberFormatStr());
+        Assertions.assertEquals(expectedResult, exchangeCurrencyInfo);
     }
 
     @Test
-    void getAllSupportedCurrency() throws IOException {
+    void getAllSupportedCurrencyTest() throws IOException {
         // Arrange
         List<String> expectedCurrencyList = List.of("cad", "usd", "gbp", "sek", "aud");
 
