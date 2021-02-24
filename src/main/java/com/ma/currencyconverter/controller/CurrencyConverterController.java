@@ -1,6 +1,6 @@
 package com.ma.currencyconverter.controller;
 
-import com.ma.currencyconverter.service.ExchangeCurrencyInfo;
+import com.ma.currencyconverter.model.ExchangeCurrencyInfo;
 import com.ma.currencyconverter.service.ForeignExchangeRateService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -40,7 +40,7 @@ public class CurrencyConverterController {
      * This will send exchanged currency amount in response with HTTP status code 200.
      *
      * @param localCurrency
-     * @param exCurrency
+     * @param exchangeCurrency
      * @param amount
      * @return
      * @since 10-02-2020
@@ -51,14 +51,14 @@ public class CurrencyConverterController {
             @ApiParam(value = "Local currency 3 character alphabetic currency codes (ISO 4217), i.e. eur, usd, gpb")
             @RequestParam(value = "localCurrency", required = true) String localCurrency,
             @ApiParam(value = "Exchanged currency 3 character alphabetic currency codes (ISO 4217), i.e. eur, usd, gpb")
-            @RequestParam(value = "exCurrency", required = true) String exCurrency,
+            @RequestParam(value = "exchangeCurrency", required = true) String exchangeCurrency,
             @ApiParam(value = "A desired amount of money for exchange. A whole number i.e. 10 or floating number 10.50")
             @RequestParam(required = true) double amount) {
-        logger.info("amount: " + amount + " currency: " + localCurrency + " exCurrency: " + exCurrency);
+        logger.info("amount: " + amount + " currency: " + localCurrency + " exchangeCurrency: " + exchangeCurrency);
         BigDecimal bigDecimalAmount = new BigDecimal(amount);
         ExchangeCurrencyInfo exchangeCurrencyInfo;
         try {
-            exchangeCurrencyInfo = foreignExchangeRateService.getExchangeCurrencyInfo(localCurrency, exCurrency, bigDecimalAmount);
+            exchangeCurrencyInfo = foreignExchangeRateService.getExchangeCurrencyInfo(localCurrency, exchangeCurrency, bigDecimalAmount);
         } catch (IOException ex){
             exchangeCurrencyInfo = new ExchangeCurrencyInfo();
             exchangeCurrencyInfo.populateResult("The requested local currency is not supported in our system");

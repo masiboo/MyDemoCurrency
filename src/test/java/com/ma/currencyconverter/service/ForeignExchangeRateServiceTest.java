@@ -1,6 +1,7 @@
 package com.ma.currencyconverter.service;
 
 import com.google.gson.JsonObject;
+import com.ma.currencyconverter.model.ExchangeCurrencyInfo;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,10 +24,10 @@ class ForeignExchangeRateServiceTest {
 
     @Test
     void getExchangeCurrencyInfoTest() throws IOException {
-        BigDecimal amount = new BigDecimal("10");
+        BigDecimal amount = new BigDecimal("10.00");
         ExchangeCurrencyInfo exchangeCurrencyInfo = foreignExchangeRateService
                 .getExchangeCurrencyInfo("eur", "gbp", amount);
-        assertTrue(exchangeCurrencyInfo.getExchangeRate().compareTo(BigDecimal.ZERO) > 0 );
+        assertTrue(exchangeCurrencyInfo.getExchangeRate().compareTo(BigDecimal.ZERO) > 0);
         assertTrue(exchangeCurrencyInfo.getExchangedAmount().compareTo(BigDecimal.ZERO) > 0);
         assertEquals(amount, exchangeCurrencyInfo.getLocalAmount());
     }

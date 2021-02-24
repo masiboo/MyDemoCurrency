@@ -1,6 +1,6 @@
 package com.ma.currencyconverter.controller;
 
-import com.ma.currencyconverter.service.ExchangeCurrencyInfo;
+import com.ma.currencyconverter.model.ExchangeCurrencyInfo;
 import com.ma.currencyconverter.service.ForeignExchangeRateService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

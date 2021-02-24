@@ -1,4 +1,4 @@
-package com.ma.currencyconverter.service;
+package com.ma.currencyconverter.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * This class holds all necessary values for exchange currency
+ * This model holds all necessary values for exchange currency
  * @since 23-02-2021
  * */
 public class ExchangeCurrencyInfo {
