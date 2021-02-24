@@ -24,7 +24,7 @@ Once you are ready, send us a link to your code and Git repository.
 
 # My implementation
 
-This implemented by open JDK 15 and spring boot 2.4.3  
+This is implemented by open JDK 15 and spring boot 2.4.3
 
 This demo API is hosted at Heroku. To test the API, Swagger UI is added to test easily.
 
